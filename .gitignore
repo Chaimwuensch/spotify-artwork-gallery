@@ -1,5 +1,7 @@
-node_modules/
+# Ignore build output and environment files
 dist/
 .env
 .DS_Store
 *.log
+node_modules/
+/node_modules
