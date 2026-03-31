@@ -6,7 +6,7 @@ const spotifyRoutes = require("./routes/spotify");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5173";
-const HF_TOKEN = "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";
+const HF_TOKEN = "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";
 
 // Middleware
 app.use(cors({ origin: CORS_ORIGIN }));
