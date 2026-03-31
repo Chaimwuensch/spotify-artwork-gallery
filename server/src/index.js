@@ -6,7 +6,7 @@ const spotifyRoutes = require("./routes/spotify");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5173";
-const HF_TOKEN = "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";
+const HF_TOKEN = "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";
 
 // Middleware
 app.use(cors({ origin: CORS_ORIGIN }));
@@ -22,7 +22,7 @@ app.post("/api/generate-art", async (req, res) => {
 
   try {
     const hfRes = await fetch(
-      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1",
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
       {
         method: "POST",
         headers: {
@@ -39,7 +39,7 @@ app.post("/api/generate-art", async (req, res) => {
     if (!hfRes.ok) return res.status(hfRes.status).json({ error: `HuggingFace error: ${hfRes.status}` });
 
     const imageBuffer = await hfRes.arrayBuffer();
-    res.set("Content-Type", "image/jpeg");
+    res.set("Content-Type", "image/png");
     res.send(Buffer.from(imageBuffer));
   } catch (err) {
     console.error("Art generation error:", err.message);
