@@ -49,6 +49,12 @@ export default function TrackDetail() {
           body: JSON.stringify({ prompt }),
         });
 
+        if (res.status === 429) {
+          console.warn(`Rate limited, waiting before retry... (attempt ${attempt})`);
+          await sleep(attempt * 8000);
+          continue;
+        }
+
         if (res.status === 503) {
           console.warn(`Model loading, retrying... (attempt ${attempt})`);
           await sleep(attempt * 5000);
@@ -78,7 +84,6 @@ export default function TrackDetail() {
   const saveCard = async () => {
     setLoading(true);
     try {
-      // Convert blob URL to data URL for persistence
       const response = await fetch(image);
       const blob = await response.blob();
       
@@ -90,7 +95,7 @@ export default function TrackDetail() {
           trackName: track.name,
           artist: track.artists.map(a => a.name).join(", "),
           albumArt: track.album.images[0]?.url,
-          generatedArt: reader.result, // Base64 data URL - persists across sessions
+          generatedArt: reader.result,
           style: selectedStyle.label,
           savedAt: new Date().toISOString(),
           liked: false,
@@ -181,7 +186,7 @@ export default function TrackDetail() {
             <>{selectedStyle.emoji} Generate {selectedStyle.label} Art</>
           )}
         </button>
-        <p className="text-center text-gray-700 text-xs mt-2">Free · Powered by FLUX</p>
+        <p className="text-center text-gray-700 text-xs mt-2">Free · Powered by Pollinations FLUX</p>
       </div>
 
       {/* Loading skeleton */}
@@ -192,7 +197,7 @@ export default function TrackDetail() {
             <div className="text-center">
               <div className="text-4xl mb-3 animate-bounce">{selectedStyle.emoji}</div>
               <p className="text-gray-600 text-sm">Generating your art...</p>
-              <p className="text-gray-700 text-xs mt-1">This takes ~10–20 seconds</p>
+              <p className="text-gray-700 text-xs mt-1">This takes ~15–30 seconds</p>
             </div>
           </div>
         </div>
