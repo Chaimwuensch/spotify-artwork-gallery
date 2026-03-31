@@ -42,6 +42,9 @@ git push origin main
 After deployment, go to your backend project settings:
 1. Navigate to **Settings** → **Environment Variables**
 2. Add these environment variables:
+   - `SPOTIFY_CLIENT_ID` = Your Spotify Client ID (from Spotify Developer Dashboard)
+   - `SPOTIFY_CLIENT_SECRET` = Your Spotify Client Secret (from Spotify Developer Dashboard)
+   - `SPOTIFY_REDIRECT_URI` = `https://your-frontend-domain.vercel.app/callback`
    - `HUGGINGFACE_API_KEY` = Your HuggingFace API token (from `.env.local`)
    - `CORS_ORIGIN` = `https://your-frontend-domain.vercel.app` (set after frontend is deployed)
    - `PORT` = `3001` (Vercel ignores this, but keep it)
@@ -73,7 +76,7 @@ After deployment completes:
 After deployment, go to your frontend project settings:
 1. Navigate to **Settings** → **Environment Variables**
 2. Add these variables:
-   - `VITE_SPOTIFY_CLIENT_ID` = `9500256483f54974a48bbbb847aa8f9e`
+   - `VITE_SPOTIFY_CLIENT_ID` = Your Spotify Client ID (from your `.env.local` or Spotify Developer Dashboard)
    - `VITE_SPOTIFY_REDIRECT_URI` = `https://your-frontend-domain.vercel.app/callback`
    - `VITE_API_BASE_URL` = `https://your-backend-domain.vercel.app`
 
