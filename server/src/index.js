@@ -22,7 +22,7 @@ app.post("/api/generate-art", async (req, res) => {
 
   try {
     const hfRes = await fetch(
-      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+      "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1",
       {
         method: "POST",
         headers: {
@@ -31,7 +31,6 @@ app.post("/api/generate-art", async (req, res) => {
         },
         body: JSON.stringify({
           inputs: prompt,
-          parameters: { width: 1024, height: 1024 },
         }),
       }
     );
