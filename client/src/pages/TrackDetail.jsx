@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { transliterate } from "transliteration";
+import { API_BASE_URL } from "../config/api";
 
 const ART_STYLES = [
   { id: "dreamlike",  label: "Dreamlike",  emoji: "🌌", desc: "surreal, ethereal, floating clouds, soft light" },
@@ -42,7 +43,7 @@ export default function TrackDetail() {
 
     for (let attempt = 1; attempt <= 4; attempt++) {
       try {
-        const res = await fetch("/api/generate-art", {
+        const res = await fetch(`${API_BASE_URL}/api/generate-art`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt }),
@@ -74,20 +75,36 @@ export default function TrackDetail() {
     }
   };
 
-  const saveCard = () => {
-    const existing = JSON.parse(localStorage.getItem("saved_cards") || "[]");
-    const card = {
-      id: `${track.id}-${Date.now()}`,
-      trackName: track.name,
-      artist: track.artists.map(a => a.name).join(", "),
-      albumArt: track.album.images[0]?.url,
-      generatedArt: image,
-      style: selectedStyle.label,
-      savedAt: new Date().toISOString(),
-      liked: false,
-    };
-    localStorage.setItem("saved_cards", JSON.stringify([card, ...existing]));
-    setSaved(true);
+  const saveCard = async () => {
+    setLoading(true);
+    try {
+      // Convert blob URL to data URL for persistence
+      const response = await fetch(image);
+      const blob = await response.blob();
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const existing = JSON.parse(localStorage.getItem("saved_cards") || "[]");
+        const card = {
+          id: `${track.id}-${Date.now()}`,
+          trackName: track.name,
+          artist: track.artists.map(a => a.name).join(", "),
+          albumArt: track.album.images[0]?.url,
+          generatedArt: reader.result, // Base64 data URL - persists across sessions
+          style: selectedStyle.label,
+          savedAt: new Date().toISOString(),
+          liked: false,
+        };
+        localStorage.setItem("saved_cards", JSON.stringify([card, ...existing]));
+        setSaved(true);
+        setLoading(false);
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.error("Failed to save card:", err);
+      setError("Failed to save. Try again.");
+      setLoading(false);
+    }
   };
 
   return (

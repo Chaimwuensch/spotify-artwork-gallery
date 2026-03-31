@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import TrackCard from "../components/TrackCard";
 import SearchBar from "../components/SearchBar";
 import Navbar from "../components/Navbar";
+import { generateRandomTracks } from "../utils/generateRandomTracks";
+import { getAccessToken } from "../utils/spotifyAuth";
+import sAndC from "../assets/sAndC.png";
 
 export default function Dashboard() {
   const [tracks, setTracks] = useState([]);
@@ -13,21 +16,86 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("spotify_access_token");
-    if (!token) { navigate("/"); return; }
+    const fetchData = async () => {
+      const token = getAccessToken();
+      if (!token) { navigate("/"); return; }
 
-    const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: `Bearer ${token}` };
 
-    Promise.all([
-      fetch("https://api.spotify.com/v1/me", { headers }).then(r => r.json()),
-      fetch("https://api.spotify.com/v1/me/top/tracks?limit=20", { headers }).then(r => r.json()),
-    ]).then(([u, t]) => {
-      if (u.error) { navigate("/"); return; }
-      setUser(u);
-      setTracks(t.items || []);
-      setLoading(false);
-    });
-  }, []);
+      try {
+        const userRes = await fetch("https://api.spotify.com/v1/me", { headers });
+        console.log("User response status:", userRes.status);
+
+        const u = await userRes.json();
+        console.log("User data:", u);
+
+        if (userRes.status === 401) {
+          console.error("❌ Unauthorized - token is invalid or expired");
+          navigate("/");
+          return;
+        }
+
+        if (u.error) { 
+          console.error("User API error:", u.error);
+          navigate("/"); 
+          return; 
+        }
+        setUser(u);
+
+        // Try multiple endpoints to get tracks
+        let tracksResult = null;
+
+        // Try 1: Top tracks with different time ranges
+        console.log("🔄 Attempting /me/top/tracks...");
+        let tracksRes = await fetch("https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=long_term", { headers });
+        let t = await tracksRes.json();
+        console.log("Top tracks response:", { status: tracksRes.status, itemsCount: t.items?.length || 0 });
+
+        if (t.items && t.items.length > 0) {
+          console.log("✅ Got top tracks!");
+          tracksResult = t.items;
+        } else {
+          // Try 2: Recently played tracks
+          console.log("🔄 Top tracks empty, trying /me/player/recently-played...");
+          tracksRes = await fetch("https://api.spotify.com/v1/me/player/recently-played?limit=50", { headers });
+          let recentData = await tracksRes.json();
+          console.log("Recently played response:", { status: tracksRes.status, itemsCount: recentData.items?.length || 0 });
+          
+          if (recentData.items && recentData.items.length > 0) {
+            console.log("✅ Got recently played tracks!");
+            // Extract track objects from recently-played items
+            tracksResult = recentData.items.map(item => item.track).filter(Boolean);
+          } else {
+            // Try 3: Medium-term top tracks
+            console.log("🔄 Recently played empty, trying medium_term top tracks...");
+            tracksRes = await fetch("https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=medium_term", { headers });
+            t = await tracksRes.json();
+            console.log("Medium term tracks response:", { status: tracksRes.status, itemsCount: t.items?.length || 0 });
+            
+            if (t.items && t.items.length > 0) {
+              console.log("✅ Got medium-term top tracks!");
+              tracksResult = t.items;
+            }
+          }
+        }
+
+        if (tracksResult && tracksResult.length > 0) {
+          setTracks(tracksResult);
+        } else {
+          console.warn("⚠️ No Spotify tracks found from any endpoint, using fallback");
+          setTracks(generateRandomTracks(20));
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error("❌ Error fetching data:", error);
+        // Use fallback - don't navigate, let user see something
+        setTracks(generateRandomTracks(20));
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
 
   const toggleLike = (id) => {
     const updated = liked.includes(id) ? liked.filter(l => l !== id) : [...liked, id];
@@ -60,10 +128,10 @@ export default function Dashboard() {
             <p className="text-green-400 text-xs uppercase tracking-widest font-medium">Your Music</p>
             <h1 className="text-2xl font-bold mt-1">Top Tracks 🎵</h1>
           </div>
-          {user?.images?.[0]?.url && (
-            <img src={user.images[0].url} onClick={() => navigate("/profile")}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-green-400 cursor-pointer" alt="" />
-          )}
+          <img src={user?.images?.[0]?.url || sAndC} onClick={() => navigate("/profile")}
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-green-400 cursor-pointer" alt="profile" 
+            onError={(e) => {e.target.src = sAndC}}
+          />
         </div>
         <SearchBar value={search} onChange={setSearch} />
       </div>

@@ -5,9 +5,11 @@ const spotifyRoutes = require("./routes/spotify");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5173";
+const HF_TOKEN = process.env.HUGGINGFACE_API_KEY;
 
 // Middleware
-app.use(cors({ origin: "http://127.0.0.1:5173" }));
+app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
 
 // Routes
@@ -24,7 +26,7 @@ app.post("/api/generate-art", async (req, res) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          Authorization: `Bearer ${HF_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

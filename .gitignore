@@ -1,7 +1,10 @@
 # Ignore build output and environment files
 dist/
 .env
+.env.local
 .DS_Store
 *.log
 node_modules/
-/node_modulesserver/.env
+server/.env
+server/.env.local
+client/.env.local

@@ -13,11 +13,18 @@ export default function TrackCard({ track, index, liked, onLike }) {
         className="relative"
         onClick={() => navigate(`/track/${track.id}`, { state: { track } })}
       >
-        <img
-          src={track.album.images[1]?.url}
-          alt={track.album.name}
-          className="w-full aspect-square object-cover"
-        />
+        {(() => {
+          const imageUrl = track.album.images?.[1]?.url || track.album.images?.[0]?.url || "https://placehold.co/300x300?text=No+Image";
+          console.log(`TrackCard ${track.name}: `, { imageUrl, album: track.album, imagesLength: track.album?.images?.length });
+          return (
+            <img
+              src={imageUrl}
+              alt={track.album.name}
+              className="w-full aspect-square object-cover"
+              onError={(e) => {console.error(`Image failed to load: ${e.target.src}`); e.target.src = "https://placehold.co/300x300?text=Image+Not+Found"}}
+            />
+          );
+        })()}
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

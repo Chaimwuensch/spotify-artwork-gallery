@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import sAndC from "../assets/sAndC.png";
 
 export default function Profile() {
   const [cards, setCards] = useState(() => JSON.parse(localStorage.getItem("saved_cards") || "[]"));
@@ -32,11 +33,10 @@ export default function Profile() {
       navigator.share({
         title: `${card.trackName} — AI Art`,
         text: `Check out this AI art I made for "${card.trackName}" by ${card.artist}`,
-        url: card.generatedArt,
       });
     } else {
-      navigator.clipboard.writeText(card.generatedArt);
-      alert("Image URL copied to clipboard!");
+      navigator.clipboard.writeText(`I created AI art for "${card.trackName}" by ${card.artist}`);
+      alert("Share text copied to clipboard!");
     }
   };
 
@@ -46,10 +46,10 @@ export default function Profile() {
       {/* Header */}
       <div className="px-5 pt-12 pb-8 text-center"
         style={{ background: "linear-gradient(180deg, #0d1a2e 0%, #0a0a0a 100%)" }}>
-        {user?.images?.[0]?.url && (
-          <img src={user.images[0].url}
-            className="w-20 h-20 rounded-full mx-auto mb-3 object-cover ring-4 ring-green-400 ring-offset-4 ring-offset-[#0a0a0a]" alt="" />
-        )}
+        <img src={user?.images?.[0]?.url || sAndC}
+          className="w-20 h-20 rounded-full mx-auto mb-3 object-cover ring-4 ring-green-400 ring-offset-4 ring-offset-[#0a0a0a]" alt="profile"
+          onError={(e) => {e.target.src = sAndC}}
+        />
         <h1 className="text-2xl font-bold">{user?.display_name}</h1>
         <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
         <div className="flex justify-center gap-6 mt-4">
